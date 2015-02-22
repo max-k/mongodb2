@@ -2,7 +2,7 @@
 	"name": "javascript-fullstack-store",
 	"description": "Full-Stack JavaScript with MongoDB, Express, AngularJS, and Node.js",
 	"version": "0.0.1",
-	"author": "Thomas Sarboni <max-k@post.com>",
+	"author": "Thomas Sarboni",
 	"engines": {
 		"node": "0.10.x",
 		"npm": "1.4.x"
@@ -26,6 +26,7 @@
 		"consolidate": "~0.10.0",
 		"swig": "~1.4.1",
 		"mongoose": "~3.8.8",
+                "mongoose-fs":"~0.2.7",
 		"passport": "~0.2.0",
 		"passport-local": "~1.0.0",
 		"passport-facebook": "~1.0.2",
