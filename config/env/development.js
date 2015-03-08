@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-	db: 'mongodb://localhost/javascript-fullstack-store-dev',
+	db: 'mongodb://' + (process.env.DB_1_PORT_27017_TCP_ADDR || 'localhost') + '/javascript-fullstack-store-dev',
 	app: {
 		title: 'javascript-fullstack-store - Development Environment'
 	},
