@@ -1,9 +1,11 @@
 'use strict';
 
 var should = require('should'),
+        fs = require('fs'),
 	request = require('supertest'),
 	app = require('../../server'),
 	mongoose = require('mongoose'),
+        Grid = require('gridfs-stream'),
 	User = mongoose.model('User'),
 	Application = mongoose.model('Application'),
 	agent = request.agent(app);
@@ -11,12 +13,15 @@ var should = require('should'),
 /**
  * Globals
  */
-var credentials, user, application;
+var user, application, credentials, fileId;
+var gfs = new Grid(mongoose.connection.db, mongoose.mongo);
+var filepath = '/home/tsarboni/images/89202-arch2.png';
 
 /**
  * Application routes tests
  */
 describe('Application CRUD tests', function() {
+
 	beforeEach(function(done) {
 		// Create user credentials
 		credentials = {
@@ -30,19 +35,33 @@ describe('Application CRUD tests', function() {
 			lastName: 'Name',
 			displayName: 'Full Name',
 			email: 'test@test.com',
+                        roles: ['user', 'admin'],
 			username: credentials.username,
 			password: credentials.password,
-			provider: 'local'
+			provider: 'local',
 		});
 
-		// Save a user to the test db and create new Application
-		user.save(function() {
-			application = {
-				name: 'Application Name'
-			};
+                fileId = new mongoose.Types.ObjectId();
 
-			done();
-		});
+                user.save(function() {
+                        // Prepare an Application object
+                        application = new Application({
+                                name: 'Application Name',
+                                categories: ['games','office'],
+                                logo: fileId,
+                        });
+
+                        // Manage GridFS file upload
+                        var writeStream = gfs.createWriteStream({
+                                _id: fileId,
+                                filename: fileId.toString()
+                        });
+                        fs.createReadStream(filepath).pipe(writeStream);
+                        writeStream.on('close', function (file) {
+                                should.exist(file);
+                                done();
+                        });
+                });
 	});
 
 	it('should be able to save Application instance if logged in', function(done) {
@@ -52,9 +71,6 @@ describe('Application CRUD tests', function() {
 			.end(function(signinErr, signinRes) {
 				// Handle signin error
 				if (signinErr) done(signinErr);
-
-				// Get the userId
-				var userId = user.id;
 
 				// Save a new Application
 				agent.post('/applications')
@@ -74,7 +90,7 @@ describe('Application CRUD tests', function() {
 								var applications = applicationsGetRes.body;
 
 								// Set assertions
-								(applications[0].user._id).should.equal(userId);
+								(applications[0].logo).should.equal(fileId.toString());
 								(applications[0].name).should.match('Application Name');
 
 								// Call the assertion callback
@@ -94,7 +110,7 @@ describe('Application CRUD tests', function() {
 			});
 	});
 
-	it('should not be able to save Application instance if no name is provided', function(done) {
+	it('should not be able to save Application instance if an empty name is provided', function(done) {
 		// Invalidate name field
 		application.name = '';
 
@@ -104,9 +120,6 @@ describe('Application CRUD tests', function() {
 			.end(function(signinErr, signinRes) {
 				// Handle signin error
 				if (signinErr) done(signinErr);
-
-				// Get the userId
-				var userId = user.id;
 
 				// Save a new Application
 				agent.post('/applications')
@@ -121,6 +134,90 @@ describe('Application CRUD tests', function() {
 					});
 			});
 	});
+
+        it('should not be able to save Application instance if no category is provided', function(done) {
+                // Invalidate categories field
+                application.categories = [];
+
+                agent.post('/auth/signin')
+                        .send(credentials)
+                        .expect(200)
+                        .end(function(signinErr, signinRes) {
+                                // Handle signin error
+                                if (signinErr) done(signinErr);
+
+                                // Get the userId
+                                var userId = user.id;
+
+                                // Save a new Application
+                                agent.post('/applications')
+                                        .send(application)
+                                        .expect(400)
+                                        .end(function(applicationSaveErr, applicationSaveRes) {
+                                                // Set message assertion
+                                                (applicationSaveRes.body.message).should.match('Please select at least one category');
+
+                                                // Handle Application save error
+                                                done(applicationSaveErr);
+                                        });
+                        });
+        });
+
+        it('should not be able to save Application instance if no logo is provided', function(done) {
+                // Invalidate logo field
+                application.logo = undefined;
+
+                agent.post('/auth/signin')
+                        .send(credentials)
+                        .expect(200)
+                        .end(function(signinErr, signinRes) {
+                                // Handle signin error
+                                if (signinErr) done(signinErr);
+
+                                // Get the userId
+                                var userId = user.id;
+
+                                // Save a new Application
+                                agent.post('/applications')
+                                        .send(application)
+                                        .expect(400)
+                                        .end(function(applicationSaveErr, applicationSaveRes) {
+                                                // Set message assertion
+                                                (applicationSaveRes.body.message).should.match('Please upload a logo');
+
+                                                // Handle Application save error
+                                                done(applicationSaveErr);
+                                        });
+                        });
+        });
+
+        it('should not be able to save Application instance if more than 4 pictures are provided', function(done) {
+                // Invalidate pictures field
+                application.pictures = [fileId, fileId, fileId, fileId, fileId];
+
+                agent.post('/auth/signin')
+                        .send(credentials)
+                        .expect(200)
+                        .end(function(signinErr, signinRes) {
+                                // Handle signin error
+                                if (signinErr) done(signinErr);
+
+                                // Get the userId
+                                var userId = user.id;
+
+                                // Save a new Application
+                                agent.post('/applications')
+                                        .send(application)
+                                        .expect(400)
+                                        .end(function(applicationSaveErr, applicationSaveRes) {
+                                                // Set message assertion
+                                                (applicationSaveRes.body.message).should.match('Four pictures max please');
+
+                                                // Handle Application save error
+                                                done(applicationSaveErr);
+                                        });
+                        });
+        });
 
 	it('should be able to update Application instance if signed in', function(done) {
 		agent.post('/auth/signin')
@@ -261,8 +358,16 @@ describe('Application CRUD tests', function() {
 	});
 
 	afterEach(function(done) {
-		User.remove().exec();
 		Application.remove().exec();
-		done();
+		User.remove().exec();
+
+                gfs.remove({ _id: fileId }, function (err) {
+                        should.not.exist(err);
+                        gfs.exist({ _id: fileId }, function(err, result) {
+                                should.not.exist(err);
+                                should.notEqual(result, true);
+		                done();
+                        });
+                });
 	});
 });

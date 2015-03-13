@@ -13,7 +13,6 @@ var mongoose = require('mongoose'),
  */
 exports.create = function(req, res) {
 	var application = new Application(req.body);
-	application.user = req.user;
 
 	application.save(function(err) {
 		if (err) {
@@ -73,7 +72,7 @@ exports.delete = function(req, res) {
  * List of Applications
  */
 exports.list = function(req, res) { 
-	Application.find().sort('-created').populate('user', 'displayName').exec(function(err, applications) {
+	Application.find().sort('-created').exec(function(err, applications) {
 		if (err) {
 			return res.status(400).send({
 				message: errorHandler.getErrorMessage(err)
@@ -88,7 +87,7 @@ exports.list = function(req, res) {
  * Application middleware
  */
 exports.applicationByID = function(req, res, next, id) { 
-	Application.findById(id).populate('user', 'displayName').exec(function(err, application) {
+	Application.findById(id).exec(function(err, application) {
 		if (err) return next(err);
 		if (! application) return next(new Error('Failed to load Application ' + id));
 		req.application = application ;

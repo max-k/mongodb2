@@ -7,12 +7,12 @@ module.exports = function(app) {
 	// Applications Routes
 	app.route('/applications')
 		.get(applications.list)
-		.post(users.requiresLogin, applications.create);
+		.post(users.requiresLogin, users.hasAuthorization(['admin']), applications.create);
 
 	app.route('/applications/:applicationId')
 		.get(applications.read)
-		.put(users.requiresLogin, applications.hasAuthorization, applications.update)
-		.delete(users.requiresLogin, applications.hasAuthorization, applications.delete);
+		.put(users.requiresLogin, users.hasAuthorization(['admin']), applications.update)
+		.delete(users.requiresLogin, users.hasAuthorization(['admin']), applications.delete);
 
 	// Finish by binding the Application middleware
 	app.param('applicationId', applications.applicationByID);
