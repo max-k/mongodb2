@@ -1,9 +1,13 @@
 'use strict';
 
 // Applications controller
-angular.module('applications').controller('ApplicationsController', ['$scope', '$stateParams', '$location', 'Authentication', 'Applications',
-	function($scope, $stateParams, $location, Authentication, Applications) {
+angular.module('applications').controller('ApplicationsController', ['$scope', '$stateParams', '$location', 'Authentication', 'Applications', 'Categories',
+	function($scope, $stateParams, $location, Authentication, Applications, Categories) {
 		$scope.authentication = Authentication;
+
+                // Unneeded but interesting:
+                //$scope.orderProp = "-created";
+                //$scope.categories = 
 
 		// Create new Application
 		$scope.create = function() {
@@ -55,6 +59,19 @@ angular.module('applications').controller('ApplicationsController', ['$scope', '
 		$scope.find = function() {
 			$scope.applications = Applications.query();
 		};
+
+                // Find a list of Categories
+                $scope.findCategories = function() {
+                        $scope.categories = Categories.query();
+                        $scope.selectedCategories = [];
+
+                        $scope.categoriesSettings = {
+                                smartButtonMaxItems: 3,
+                                smartButtonTextConverter: function(itemText, originalItem) {
+                                        return itemText;
+                                }
+                        };
+                };
 
 		// Find existing Application
 		$scope.findOne = function() {
