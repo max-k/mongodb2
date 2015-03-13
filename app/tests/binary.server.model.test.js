@@ -13,7 +13,8 @@ var should = require('should'),
 /**
  * Globals
  */
-var gfs, user, binary, fileId;
+var user, binary, fileId;
+var gfs = new Grid(mongoose.connection.db, mongoose.mongo);
 var filepath = '/home/tsarboni/images/89202-arch2.png';
 
 /**
@@ -33,16 +34,6 @@ describe('Binary Model Unit Tests:', function() {
                 });
 
                 fileId = new mongoose.Types.ObjectId();
-                mongoose.connection.on('open', function(err) {
-
-                        // Manage GridFS file upload
-                        gfs = new Grid(mongoose.connection.db, mongoose.mongo);
-                        var writeStream = gfs.createWriteStream({ _id: fileId, filename: fileId.toString() });
-                        fs.createReadStream(filepath).pipe(writeStream);
-                        writeStream.on('close', function (file) {
-                                should.exist(file);
-                        });
-                });
 
                 user.save(function() {
                         // Prepare a Binary object
@@ -51,13 +42,24 @@ describe('Binary Model Unit Tests:', function() {
                                 os_version: {os: 'android', version: '5.0'},
                                 file: fileId
                         });
-                        done();
+
+                        // Manage GridFS file upload
+                        var writeStream = gfs.createWriteStream({
+                                _id: fileId,
+                                filename: fileId.toString()
+                        });
+                        fs.createReadStream(filepath).pipe(writeStream);
+                        writeStream.on('close', function (file) {
+                                should.exist(file);
+                                done();
+                        });
                 });
         });
 
         describe('Method Save', function() {
                 it('should be able to save without problems', function(done) {
                         return binary.save(function(err) {
+                                console.log(err);
                                 should.not.exist(err);
                                 done();
                         });
@@ -97,13 +99,11 @@ describe('Binary Model Unit Tests:', function() {
 
                 gfs.remove({ _id: fileId }, function (err) {
                         should.not.exist(err);
+                        gfs.exist({ _id: fileId }, function(err, result) {
+                                should.not.exist(err);
+                                should.notEqual(result, true);
+                                done();
+                        });
                 });
-                gfs.exist({ _id: fileId }, function(err, result) {
-                        should.not.exist(err);
-                        should.notEqual(result, true);
-                });
-
-                done();
         });
-
 });
