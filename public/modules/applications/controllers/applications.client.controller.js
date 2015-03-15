@@ -13,7 +13,8 @@ angular.module('applications').controller('ApplicationsController', ['$scope', '
 		$scope.create = function() {
 			// Create new Application object
 			var application = new Applications ({
-				name: this.name
+				name: this.name,
+                                categories: this.selectedCategories
 			});
 
 			// Redirect after save
@@ -66,10 +67,14 @@ angular.module('applications').controller('ApplicationsController', ['$scope', '
                         $scope.selectedCategories = [];
 
                         $scope.categoriesSettings = {
-                                smartButtonMaxItems: 3,
-                                smartButtonTextConverter: function(itemText, originalItem) {
-                                        return itemText;
-                                }
+                        //        smartButtonMaxItems: 3,
+                        //        smartButtonTextConverter: function(itemText, originalItem) {
+                        //                return itemText;
+                        //        }
+                        };
+                        
+                        $scope.categoriesTexts = {
+                                buttonDefaultText: 'Categories'
                         };
                 };
 
