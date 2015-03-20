@@ -26,6 +26,7 @@
     "express-session": "~1.9.1",
     "forever": "~0.11.0",
     "formidable": "^1.0.17",
+    "fs-extra": "^0.16.5",
     "glob": "~4.0.5",
     "gridfs-stream": "~0.5.3",
     "grunt-cli": "~0.1.13",

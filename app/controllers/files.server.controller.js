@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
-        fs = require('fs'),
+        fs = require('fs-extra'),
         formidable = require('formidable'),
 	errorHandler = require('./errors.server.controller'),
 	Application = mongoose.model('Application'),
