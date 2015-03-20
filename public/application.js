@@ -10,6 +10,22 @@ angular.module(ApplicationConfiguration.applicationModuleName).config(['$locatio
 	}
 ]);
 
+// Setting ng-flow configuration
+angular.module(ApplicationConfiguration.applicationModuleName).config(['flowFactoryProvider', function (flowFactoryProvider) {
+    flowFactoryProvider.defaults = {
+            target: '/files',
+            permanentErrors: [404, 500, 501],
+            maxChunkRetries: 3,
+            chunkRetryInterval: 5000,
+            simultaneousUploads: 4,
+            chunkSize: 255*1024,
+            forceChunkSize: true
+    };
+    flowFactoryProvider.on('catchAll', function (event) {
+        console.log('catchAll', arguments);
+    });
+}]);
+
 //Then define the init function for starting up the application
 angular.element(document).ready(function() {
 	//Fixing facebook bug with redirect

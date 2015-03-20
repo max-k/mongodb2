@@ -14,6 +14,7 @@
     "angular-bootstrap": "~0.11.2",
     "angular-ui-utils": "~0.1.1",
     "angular-ui-router": "~0.2.11",
-    "angularjs-dropdown-multiselect": "~1.5.2"
+    "angularjs-dropdown-multiselect": "~1.5.2",
+    "ng-flow": "~2"
   }
 }
