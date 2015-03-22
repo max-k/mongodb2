@@ -12,8 +12,10 @@ var mongoose = require('mongoose'),
  * Create a Application
  */
 exports.create = function(req, res) {
+        console.log(req.body);
 	var application = new Application(req.body);
 
+        console.log(application);
 	application.save(function(err) {
 		if (err) {
 			return res.status(400).send({
@@ -93,14 +95,4 @@ exports.applicationByID = function(req, res, next, id) {
 		req.application = application ;
 		next();
 	});
-};
-
-/**
- * Application authorization middleware
- */
-exports.hasAuthorization = function(req, res, next) {
-	if (req.application.user.id !== req.user.id) {
-		return res.status(403).send('User is not authorized');
-	}
-	next();
 };

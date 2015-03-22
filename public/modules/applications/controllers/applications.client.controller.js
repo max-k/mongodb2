@@ -7,14 +7,42 @@ angular.module('applications').controller('ApplicationsController', ['$scope', '
 
                 // Unneeded but interesting:
                 //$scope.orderProp = "-created";
-                //$scope.categories = 
 
 		// Create new Application
 		$scope.create = function() {
+                        // Recover pictures
+                        var flowPics = this.flow.pics.files || [];
+                        var pictures = [];
+                        if (flowPics.length > 0) {
+                                for (var i = 0; i < flowPics.length; i++) {
+                                        var oid = flowPics[i].id;
+                                        pictures[pictures.length] = oid;
+                                }
+                        }
+
+                        // Recover logo
+                        var logo = null;
+                        if( this.flow.logo.files.length > 0) {
+                                logo = this.flow.logo.files[0].id;
+                        }
+
+                        // Recover categories
+                        var selectedCats = this.selectedCategories;
+                        var categories = [];
+                        if (selectedCats.length > 0) {
+                                for (var j = 0; j < selectedCats.length; j++) {
+                                        var id = selectedCats[j].id;
+                                        var label = this.categories[id].label;
+                                        categories[categories.length] = label;
+                                }
+                        }
+
 			// Create new Application object
 			var application = new Applications ({
 				name: this.name,
-                                categories: this.selectedCategories
+                                logo: logo,
+                                categories: categories,
+                                pictures: pictures
 			});
 
 			// Redirect after save
@@ -61,28 +89,40 @@ angular.module('applications').controller('ApplicationsController', ['$scope', '
 			$scope.applications = Applications.query();
 		};
 
-                // Find a list of Categories
-                $scope.findCategories = function() {
-                        $scope.categories = Categories.query();
-                        $scope.selectedCategories = [];
-
-                        $scope.categoriesSettings = {
-                        //        smartButtonMaxItems: 3,
-                        //        smartButtonTextConverter: function(itemText, originalItem) {
-                        //                return itemText;
-                        //        }
-                        };
-                        
-                        $scope.categoriesTexts = {
-                                buttonDefaultText: 'Categories'
-                        };
-                };
-
 		// Find existing Application
 		$scope.findOne = function() {
 			$scope.application = Applications.get({ 
 				applicationId: $stateParams.applicationId
 			});
 		};
+
+                // Initialize application creation scope
+                $scope.initCreateScope = function() {
+                        // Initialize Categories dropdown
+                        $scope.categories = Categories.query();
+                        $scope.selectedCategories = [];
+                        $scope.categoriesSettings = {
+                        //        smartButtonMaxItems: 3,
+                        //        smartButtonTextConverter: function(itemText, originalItem) {
+                        //                return itemText;
+                        //        }
+                        };
+                        $scope.categoriesTexts = {
+                                buttonDefaultText: 'Categories'
+                        };
+
+                        // Create parent flow object for ng-flow
+                        $scope.flow = {};
+                };
+
+                // Add gridFS id to an ng-flow file object
+                $scope.addFileIdToFlow = function(flow, file, id) {
+                        for (var k = 0; k < flow.files.length; k++) {
+                                if (flow.files[k].uniqueIdentifier === file.uniqueIdentifier) {
+                                        flow.files[k].id = id.replace(/\"/g, '');
+                                }
+                        }
+                };
+
 	}
 ]);

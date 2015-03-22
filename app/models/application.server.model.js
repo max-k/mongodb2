@@ -46,8 +46,8 @@ var ApplicationSchema = new Schema({
                 default: 0
         },
         logo: {
-                    type: Schema.ObjectId,
-                    required: 'Please upload a logo'
+                type: Schema.ObjectId,
+                required: 'Please upload a logo'
         },
         pictures: {
                 type: [Schema.ObjectId], 
