@@ -13,7 +13,7 @@ angular.module(ApplicationConfiguration.applicationModuleName).config(['$locatio
 // Setting ng-flow configuration
 angular.module(ApplicationConfiguration.applicationModuleName).config(['flowFactoryProvider', function (flowFactoryProvider) {
     flowFactoryProvider.defaults = {
-            target: '/files',
+            target: '/uploads',
             permanentErrors: [404, 500, 501],
             maxChunkRetries: 3,
             chunkRetryInterval: 5000,
@@ -21,9 +21,9 @@ angular.module(ApplicationConfiguration.applicationModuleName).config(['flowFact
             chunkSize: 255*1024,
             forceChunkSize: true
     };
-    flowFactoryProvider.on('catchAll', function (event) {
-        console.log('catchAll', arguments);
-    });
+    //flowFactoryProvider.on('catchAll', function (event) {
+    //    console.log('catchAll', arguments);
+    //});
 }]);
 
 //Then define the init function for starting up the application

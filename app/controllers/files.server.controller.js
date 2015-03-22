@@ -4,210 +4,95 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
+        _ = require('lodash'),
         fs = require('fs-extra'),
-        formidable = require('formidable'),
 	errorHandler = require('./errors.server.controller'),
-	Application = mongoose.model('Application'),
-        maxFileSize = null,
-        ObjectId = mongoose.Types.ObjectId;
+        File = mongoose.model('File'),
+        Grid = require('gridfs-stream');
  
 /**
- * Write a chunk
+ * Globals
+ */
+var gfs = new Grid(mongoose.connection.db, mongoose.mongo);
+
+/**
+ * Create a File
  */
 exports.create = function(req, res) {
-        var db = mongoose.connection.db,
-                files = db.collection('fs.files'),
-                chunks = db.collection('fs.chunks');
-
-        var file = {
-                length: req.body.flowTotalSize,
-                filename: req.body.flowIdentifier,
-                metadata: {
-                        filename: req.body.flowFilename,
-                        totalChunks: req.body.flowTotalChunks
-                }
-        };
-
-        fs.readFile(req.files.file.path, function(err, data) {
-                if (err) return res.status(500).send('Error reading temporary file');
-                files.findAndModify(file, {rating:1}, {$setOnInsert: file}, {new:true, upsert:true}, function(err, doc) {
-                        if (err) return res.status(500).send(err);
-                        var chunk = {
-                                files_id: doc._id,
-                                n: parseInt(req.body.flowChunkNumber)-1,
-                                data: data
-                        };
-                        chunks.insert(chunk, function(err, result) {
-                                if (err) return res.status(500).send('Error persisting chunk object');
-                                fs.remove(req.files.file.path, function(err) {
-                                        if (err) return res.status(500).send('Error removing temporary file');
-                                        var currentTestChunk = 0;
-                                        var testChunkExists = function(file_id) {
-                                                var chunk = {
-                                                        file_id: file_id,
-                                                        n: currentTestChunk
-                                                };
-                                                chunks.findOne(chunk, function(err, doc) {
-                                                        if (err) return res.status(500).send('Error querying chunk collection');
-                                                        if (! doc) return res.status(200).send();
-                                                        currentTestChunk++;
-                                                        if(currentTestChunk === req.body.flowTotalChunks) {
-                                                                console.log('Upload Done');
-                                                                return res.status(200).send();
-                                                        }
-                                                        testChunkExists(file_id);
-                                                });
-                                        };
-                                        testChunkExists(doc._id);
-                                });
-                        });
-                });
+        var _id = new mongoose.Types.ObjectId();
+        var writestream = gfs.createWriteStream({
+                _id: _id,
+                filename: req.body.filename
         });
+        fs.createReadStream(req.files.file.path)
+                .on('end', function() {
+                        fs.remove(req.files.path);
+                        return res.status(200).send();
+                })
+                .on('error', function(err) {
+                        return res.status(400).send({
+                                message: errorHandler.getErrorMessage(err)
+                        });
+                })
+                .pipe(writestream);
 };
 
 /**
- * Check if a chunk exists
+ * Show the current File
  */
 exports.read = function(req, res) {
-        var db = mongoose.connection.db,
-                files = db.collection('fs.files'),
-                chunks = db.collection('fs.chunks');
+        var file = req.file;
 
-        var file = {
-                length: req.body.flowTotalSize,
-                filename: req.body.flowIdentifier,
-                metadata: {
-                        filename: req.body.flowFilename,
-                        totalChunks: req.body.flowTotalChunks
-                }
-        };
+        res.set('Content-Type', file.contentType);
+        gfs.createReadStream({
+                filename: file.metadata.filename
+        }).pipe(res);
+};
 
-        files.findOne(file, function(err, doc) {
-                if (err) return res.status(500).send('Error querying files collection');
-                if (doc) {
-                        var chunk = {
-                                files_id: doc._id,
-                                n: parseInt(req.body.flowChunkNumber)-1
-                        };
-                        chunks.findOne(chunk, function(err, subdoc) {
-                                if (err) return res.status(500).send('Error querying chunks collection');
-                                if (! subdoc) {
-                                        return res.status(400).send();
-                                }
-                                return res.status(200).send();
+/**
+ * Update a File
+ */
+exports.update = function(req, res) {
+        var file = req.file;
+
+        file = _.extend(file, req.file);
+
+        file.save(function(err) {
+                if (err) {
+                        return res.status(400).send({
+                                message: errorHandler.getErrorMessage(err)
                         });
                 } else {
-                    return res.status(400).send('File not found');
+                        res.jsonp(file);
                 }
         });
 };
 
 /**
- * Delete an Application
+ * Delete a File
  */
 exports.delete = function(req, res) {
-	var application = req.application ;
-        
-	application.remove(function(err) {
-		if (err) {
-			return res.status(400).send({
-				message: errorHandler.getErrorMessage(err)
-			});
-		} else {
-			res.jsonp(application);
-		}
-	});
+        var file = req.file;
+
+        gfs.remove({_id: file._id}, function(err) {
+                if (err) {
+                        return res.status(400).send({
+                                message: errorHandler.getErrorMessage(err)
+                        });
+                } else {
+                        res.jsonp(file);
+                }
+        });
 };
 
 /**
- * Multipart parser middleware
+ * File middleware
  */
-exports.multiParser = function(req, res, next) { 
-        var form = new formidable.IncomingForm();
-        form.parse(req, function(err, fields, files) {
+exports.fileByID = function(req, res, next, id) { 
+        File.findById(id).exec(function(err, file) {
                 if (err) return next(err);
-                req.body = fields;
-                req.files = files;
+                if (! file) return next(new Error('Failed to load File' + id));
+                req.file = file;
                 next();
         });
 };
-
-/**
- * Flow validation middleware
- */
-exports.isFlowValid = function(req, res, next) {
-        var fileSize;
-
-        var cleanIdentifier = function (identifier) {
-                return identifier.replace(/[^0-9A-Za-z_-]/g, '');
-        };
-
-        if (req.method.toLowerCase() === 'get') {
-                req.body.flowChunkNumber = req.param('flowChunkNumber', 0);
-                req.body.flowChunkSize = req.param('flowChunkSize', 0);
-                req.body.flowCurrentChunkSize = req.param('flowCurrentChunkSize', 0);
-                req.body.flowTotalSize = req.param('flowTotalSize', 0);
-                req.body.flowIdentifier = req.param('flowIdentifier', '');
-                req.body.flowFilename = req.param('flowFilename', '');
-                req.body.flowTotalChunks = req.param('flowTotalChunks', 0);
-        }
-
-        if (req.method.toLowerCase() === 'post') {
-                if (!req.files.file || !req.files.file.size) {
-                        return res.status(500).send('No file in request');
-                }
-                fileSize = req.files.file.size.toString();
-        }
-
-        var chunkNumber = req.body.flowChunkNumber;
-        var chunkSize = req.body.flowChunkSize;
-        var currentChunkSize = req.body.flowCurrentChunkSize;
-        var totalSize = req.body.flowTotalSize;
-        var identifier = cleanIdentifier(req.body.flowIdentifier);
-        var filename = req.body.flowFilename;
-        var totalChunks = req.body.flowTotalChunks;
-
-        var numberOfChunks = Math.ceil(totalSize / chunkSize).toString();
-
-        if (chunkNumber === 0 || chunkSize === 0 || currentChunkSize === 0 || totalSize === 0 || identifier.length === 0 || filename.length === 0 || totalChunks === 0) {
-                return res.status(400).send('Invalid request');
-        }
-
-        if (totalChunks !== numberOfChunks) {
-                return res.status(400).send('Invalid number of chunks');
-        }
-
-        if (chunkNumber > numberOfChunks) {
-                return res.status(400).send('Invalid chunk number');
-        }
-
-        if (maxFileSize && totalSize > maxFileSize) {
-                return res.status(400).send('File is too big');
-        }
-
-        if (totalChunks === 1 && currentChunkSize !== totalSize) {
-                return res.status(400).send('Invalid single chunk size');
-        }
-
-        if (totalChunks !== 1) {
-                if (chunkNumber !== totalChunks && currentChunkSize !== chunkSize) {
-                        return res.status(400).send('Invalid first chunk size');
-                }
-                if (chunkNumber === totalChunks && currentChunkSize > chunkSize) {
-                        return res.status(400).send('Invalid last chunk size');
-                }
-        }
-
-        if (typeof(fileSize) !== 'undefined') {
-                if (fileSize !== currentChunkSize) {
-                        return res.status(400).send('Invalid chunk data size');
-                }
-        }
-
-        // Inject new or corrected fields in request object
-        req.body.flowIdentifier = identifier;
-
-	next();
-};
-
-
