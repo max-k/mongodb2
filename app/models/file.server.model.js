@@ -40,7 +40,8 @@ var FileSchema = new Schema({
 	},
         contentType: {
                 type: String,
-                enum: ['image/jpeg', 'image/gif', 'image/png', 'image/tiff', 'image/svg+xml']
+                enum: ['', 'image/jpeg', 'image/gif', 'image/png', 'image/tiff', 'image/svg+xml']
+                default: ''
         },
         metadata: {
                 type: Schema.Types.Mixed,

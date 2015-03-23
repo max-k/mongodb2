@@ -12,10 +12,8 @@ var mongoose = require('mongoose'),
  * Create a Application
  */
 exports.create = function(req, res) {
-        console.log(req.body);
 	var application = new Application(req.body);
 
-        console.log(application);
 	application.save(function(err) {
 		if (err) {
 			return res.status(400).send({

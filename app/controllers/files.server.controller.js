@@ -44,9 +44,13 @@ exports.read = function(req, res) {
         var file = req.file;
 
         res.set('Content-Type', file.contentType);
-        gfs.createReadStream({
-                filename: file.metadata.filename
-        }).pipe(res);
+        gfs.createReadStream({filename: file.filename})
+                .on('error', function(err) {
+                        return res.status(400).send({
+                                message: errorHandler.getErrorMessage(err)
+                        });
+                })
+                .pipe(res);
 };
 
 /**
