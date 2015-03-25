@@ -61,7 +61,7 @@ var ApplicationSchema = new Schema({
         },
         modules: {
                 type: [{
-                        module: {
+                        _id: {
                                 type: Schema.ObjectId,
                                 ref: 'Application'
                         },
@@ -69,14 +69,15 @@ var ApplicationSchema = new Schema({
                                 type: String
                         },
                         logo: {
-                                type: String
+                                type: Schema.ObjectId,
+                                ref: 'File'
                         }
                 }],
                 default: []
         },
         main_app: {
                 type: [{
-                        module: {
+                        _id: {
                                 type: Schema.ObjectId,
                                 ref: 'Application'
                         },
@@ -84,7 +85,8 @@ var ApplicationSchema = new Schema({
                                 type: String
                         },
                         logo: {
-                                type: String
+                                type: Schema.ObjectId,
+                                ref: 'File'
                         }
                 }],
                 default: []

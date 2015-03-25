@@ -1,0 +1,44 @@
+/* app css stylesheet */
+img.logo {
+  float: left;
+  margin-right: 2em;
+  margin-bottom: 1em;
+  background-color: white;
+  padding: 2em;
+  height: 400px;
+  width: 400px;
+  display: none;
+}
+
+img.logo:first-child {
+  display: block;
+}
+
+ul.thumbs, ul.categories-list {
+  margin: 0;
+  list-style: none;
+}
+
+ul.categories-list li {
+  display: inline-block;
+  /*margin-left: 1em;*/
+  margin-right: 1em;
+}
+
+ul.thumbs li {
+  border: 1px solid black;
+  display: inline-block;
+  margin: 1em;
+  background-color: white;
+}
+
+ul.thumbs img {
+  height: 100px;
+  width: 100px;
+  padding: 1em;
+}
+
+ul.thumbs img:hover {
+  cursor: pointer;
+}
+

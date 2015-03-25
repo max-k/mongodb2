@@ -14,6 +14,14 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="control-label" for="name">Price</label>
+                    <div class="controls">
+                        <input type="text" data-ng-model="price" id="price"
+                            class="form-control" placeholder="0" required>
+                        </input>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="control-label" for="logo">Logo</label>
                     <div class="controls">
                         <div flow-init="{singleFile:true}" flow-name="flow.logo"
@@ -92,6 +100,61 @@
                         </div>
                     </div>
                 </div>
+                <!--<div class="form-group">
+                    <label class="control-label" for="binaries">Binaries</label>
+                    <p>Number of binaries : {{binaries.length-1}}</p>
+                    <div data-ng-repeat="binary in binaries" class="controls">
+                        <span flow-init="{singleFile:true}"
+                            flow-name="flow.binaries[binary.id]"
+                            flow-files-submitted="flow.binaries[binary.id].upload()"
+                            flow-file-success="addFileIdToFlow(flow.binaries[binary.id], $file, $message);addBinary()">
+                        <input type="text" data-ng-model="binary.os" id="binary.os"
+                            class="form-control" placeholder="android/ios" required>
+                        </input>
+                        <div class="drop" flow-drop ng-class="dropClass">
+                            <span class="btn btn-default"
+                                flow-btn>Upload Picture</span>
+                            <span ng-show="$flow.files[binary.id].name"
+                                data-ng-bind="'Uploaded file : ' + $flow.files[binary.id].name">
+                            <div ng-show="showAdd(binary)"
+                                class="btn btn-default"
+                                ng-click="addBinary()">Another binary</div>
+                            <div ng-show="!(showChoice(binary))"
+                                class="btn btn-default"
+                                ng-click="removeBinary(choice)">Remove binary</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>-->
+                <div class="form-group">
+                    <label class="control-label" for="main_app">Main Application</label>
+                    <div class="controls">
+                        <ui-select ng-model="module.selected"
+                            theme="bootstrap"
+                            ng-disabled="disabled"
+                            reset-search-input="false"
+                            style="width: 300px;">
+                            <ui-select-match
+                                placeholder="Select the main app if this is a module">
+                                {{$select.selected.name}}
+                            </ui-select-match>
+                            <ui-select-choices
+                                repeat="app in applications | filter: $select.search">
+                                <span ng-bind-html="app.name | highlight: $select.search"></span>
+                            </ui-select-choices>
+                        </ui-select>
+                        <span>Selected: {{module.selected.name}}</span>
+                        <a class="btn btn-default btn-xs"
+                            ng-click="clear()"
+                            ng-show="module.selected">Clear</a>
+                    </div>
+                </div>
+                <!--<div class="form-group">
+                    <label class="control-label" for="modules">Modules</label>
+                    <div class="controls">
+                        
+                    </div>
+                    </div>-->
                 <div class="form-group">
                     <input type="submit" class="btn btn-default">
                 </div>

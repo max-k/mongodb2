@@ -2,20 +2,74 @@
 	<div class="page-header">
 		<h1 data-ng-bind="application.name"></h1>
 	</div>
-	<div class="pull-right" data-ng-show="((authentication.user) && (authentication.user._id == application.user._id))">
-		<a class="btn btn-primary" href="/#!/applications/{{application._id}}/edit">
+        <div class="alert alert-warning text-center"
+                data-ng-hide="application.available">
+                This application isn't available anymore
+        </div>
+	<div class="pull-right" data-ng-show="((authentication.user) && (authentication.user.roles.indexOf('admin')))">
+		<a class="btn btn-primary" href="/#!/applications/{{application._id}}/edit" ng-disabled="true">
 			<i class="glyphicon glyphicon-edit"></i>
 		</a>
-		<a class="btn btn-primary" data-ng-click="remove();">
+		<a class="btn btn-primary" data-ng-click="switchAvailability();">
+			<i class="glyphicon glyphicon-lock"></i>
+		</a>
+		<a class="btn btn-danger" data-ng-click="remove();">
 			<i class="glyphicon glyphicon-trash"></i>
 		</a>
 	</div>
+        <div class="app-logo">
+            <img ng-src="/files/{{img}}"
+                class="logo"
+                ng-repeat="img in images"
+                ng-class="{active: mainImageUrl==img}">
+        </div>
+        <br />
+        <ul class="categories-list">
+            <h3>Categories</h3>
+            <li ng-repeat="category in application.categories">
+                <span ng-bind="category"></span>
+            </li>
+        </ul>
+        <ul class="thumbs">
+            <h3>Pictures</h3>
+            <li ng-repeat="img in images">
+                <img ng-src="/files/{{img}}" ng-click="setPicture(img)">
+            </li>
+        </ul>
+        <h3>Main application</h3>
+        <a ng-href="/#!/applications/{{application.main_app.0._id}}"
+            ng-show="(application.available) && (application.main_app.length > 0)">
+            {{application.main_app.0.name}}
+        </a>
+        <p ng-bind="application.main_app.0.name || 'This app isn\'t a module'"
+            ng-show="(!application.available) || (application.main_app.length == 0)"></p>
+        </div>
 	<small>
 		<em class="text-muted">
-			Posted on
-			<span data-ng-bind="application.created | date:'mediumDate'"></span>
-			by
-			<span data-ng-bind="application.user.displayName"></span>
+                    <p>
+                        Created on
+			<span data-ng-bind="application.created | date:'medium'"></span>
+                    </p>
+                    <p>
+			Updated on
+			<span data-ng-bind="application.updated | date:'medium'"></span>
+                    </p>
 		</em>
 	</small>
+        <div class="pull-left" data-ng-show="authentication.user">
+                <span class="btn btn-danger"
+                      data-ng-show="((application.available) && (!ownApp) && (application.price > 0))"
+                      ng-click="addToUser()">
+                    Get it for {{application.price}} $</span>
+                <span class="btn btn-success"
+                      data-ng-show="((application.available) && (!ownApp) && (application.price == 0))"
+                      ng-click="addToUser()">
+                    Get it for free</span>
+                <span class="btn btn-default disabled"
+                      data-ng-show="(application.available) && (ownApp)">
+                    Already bought</span>
+                <span class="btn btn-default disabled"
+                      data-ng-show="(!application.available)">
+                    Disabled</span>
+        </div>
 </section>

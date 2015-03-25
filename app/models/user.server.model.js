@@ -88,7 +88,11 @@ var UserSchema = new Schema({
 	},
 	resetPasswordExpires: {
 		type: Date
-	}
+	},
+        applications: {
+                type: [Schema.Types.Mixed],
+                default: []
+        }
 });
 
 /**

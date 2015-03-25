@@ -8,6 +8,13 @@ var mongoose = require('mongoose'),
         User = mongoose.model('User');
 
 /**
+ * Show the current User
+ */
+exports.read = function(req, res) {
+        res.jsonp(req.user);
+};
+
+/**
  * List of Users
  */
 exports.list = function(req, res) {

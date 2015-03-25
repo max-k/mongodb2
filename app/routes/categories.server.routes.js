@@ -10,7 +10,7 @@ module.exports = function(app) {
         app.route('/categories/:categoryId')
                 .get(categories.read);
 
-        // Finish by binding the Application middleware
+        // Finish by binding the Category middleware
         app.param('categoryId', categories.categoryByID);
 
 };

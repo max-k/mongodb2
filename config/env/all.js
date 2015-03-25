@@ -15,9 +15,12 @@ module.exports = {
 			css: [
 				'public/lib/bootstrap/dist/css/bootstrap.css',
 				'public/lib/bootstrap/dist/css/bootstrap-theme.css',
+                                'public/lib/angular-ui-select/dist/select.min.css'
 			],
 			js: [
+                                'public/lib/jquery/dist/jquery.min.js',
 				'public/lib/angular/angular.js',
+                                'public/lib/angular-ui-select/dist/select.min.js',
 				'public/lib/angular-resource/angular-resource.js', 
 				'public/lib/angular-cookies/angular-cookies.js', 
 				'public/lib/angular-animate/angular-animate.js', 
@@ -29,6 +32,7 @@ module.exports = {
                                 'public/lib/flow.js/dist/flow.min.js',
                                 'public/lib/ng-flow/dist/ng-flow.min.js',
                                 'public/lib/lodash/dist/lodash.js',
+                                'public/lib/angular-lodash-module/angular-lodash-module.js',
 				'public/lib/angularjs-dropdown-multiselect/dist/angularjs-dropdown-multiselect.min.js'
 			]
 		},

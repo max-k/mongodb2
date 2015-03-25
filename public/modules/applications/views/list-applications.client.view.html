@@ -1,28 +1,71 @@
-<section data-ng-controller="ApplicationsController" data-ng-init="find()">
+<section data-ng-controller="ApplicationsController"
+    data-ng-init="find();queryAll=true">
+    <div class=pull-right>
+        <a ng-click="queryAll=false"
+            ng-show="queryAll"
+            class="btn btn-default">My applications</a>
+        <a ng-click="queryAll=true"
+            ng-show="!queryAll"
+            class="btn btn-default">All applications</a>
+    </div>
     <div class="page-header">
         <h1>Applications</h1>
     </div>
     <div class="row">
         Search: 
         <input ng-model="query">
-        Order by: 
-        <select ng-init="orderProp='-updated'" ng-model="orderProp">
+        Order: 
+        <select class="dropdown-toggle btn btn-default"
+            ng-init="orderProp='-updated'" ng-model="orderProp">
             <option value="name">Alphabetical</option>
-            <option value="-updated">Newest</option>
+            <option value="-updated">Chronological</option>
         </select>
+        Categories : 
+        <span ng-dropdown-multiselect="" options="categories"
+            selected-model="selectedCategories"
+            extra-settings="categoriesSettings"
+            translation-texts="categoriesTexts">
+        </span>
+        <span class="alert alert-default">
+            (uncheck all categories is equivalent to check all)
+        </span>
     </div>
-    <div class="list-group">
-        <a data-ng-repeat="application in applications | filter:query | orderBy:orderProp" data-ng-href="#!/applications/{{application._id}}" class="list-group-item">
-			<small class="list-group-item-text">
-				Created on
-				<span data-ng-bind="application.created | date:'medium'"></span>
-				Updated on
-				<span data-ng-bind="application.updated | date:'medium'"></span>
-			</small>
-			<h4 class="list-group-item-heading" data-ng-bind="application.name"></h4>
+    <br />
+    <div class="list-group" ng-show="queryAll">
+        <a data-ng-repeat="application in applications | filter:query | orderBy:orderProp"
+            data-ng-href="#!/applications/{{application._id}}"
+            class="list-group-item"
+            ng-show="checkCategories(application.categories,selectedCategories)">
+	    <small class="list-group-item-text">
+		Created on
+		<span data-ng-bind="application.created | date:'medium'"></span>
+		Updated on
+		<span data-ng-bind="application.updated | date:'medium'"></span>
+	    </small>
+            <img height=50 width=50 style="float: left; margin-right: 1em;"
+                ng-src="/files/{{application.logo}}"></img>
+	    <h3 class="list-group-item-heading"
+                data-ng-bind="application.name"></h3>
         </a>
     </div>
-    <div class="alert alert-warning text-center" data-ng-hide="!applications.$resolved || applications.length">
+    <div class="list-group" ng-show="!queryAll">
+        <div data-ng-repeat="application in authentication.user.applications | filter:query | orderBy:orderProp">
+            <a data-ng-href="#!/applications/{{application._id}}"
+                class="list-group-item"
+                ng-show="checkCategories(application.categories,selectedCategories)">
+	    <small class="list-group-item-text">
+		Baught on
+		<span data-ng-bind="application.downloaded | date:'medium'"></span>
+	    </small>
+            <img height=50 width=50 style="float: left; margin-right: 1em;"
+                ng-src="/files/{{application.logo}}"></img>
+	    <h3 class="list-group-item-heading"
+                data-ng-bind="application.name"></h3>
+            </a>
+        </div>
+    </div>
+    <div class="alert alert-warning text-center"
+        data-ng-hide="!applications.$resolved || applications.length">
     	No Applications yet, why don't you <a href="/#!/applications/create">create one</a>?
     </div>
 </section>

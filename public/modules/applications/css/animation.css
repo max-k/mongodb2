@@ -1,0 +1,39 @@
+/*
+ * animations css stylesheet
+ */
+
+/* animate ngRepeat in application listing */
+
+.list-group-item.ng-enter,
+.list-group-item.ng-leave,
+.list-group-item.ng-move {
+  -webkit-transition: 0.5s linear all;
+  -moz-transition: 0.5s linear all;
+  -o-transition: 0.5s linear all;
+  transition: 0.5s linear all;
+}
+
+.list-group-item.ng-enter,
+.list-group-item.ng-move {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.list-group-item.ng-move.ng-move-active,
+.list-group-item.ng-enter.ng-enter-active {
+  opacity: 1;
+  height: 60px;
+}
+
+.list-group-item.ng-leave {
+  opacity: 1;
+  overflow: hidden;
+}
+
+.list-group-item.ng-leave.ng-leave-active {
+  opacity: 0;
+  height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}

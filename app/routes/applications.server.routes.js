@@ -14,6 +14,13 @@ module.exports = function(app) {
 		.put(users.requiresLogin, users.hasAuthorization(['admin']), applications.update)
 		.delete(users.requiresLogin, users.hasAuthorization(['admin']), applications.delete);
 
-	// Finish by binding the Application middleware
+        app.route('/applications/by_user/:userId')
+                .get(users.requiresLogin, applications.listByUser);
+
+        app.route('/applications/:applicationId/:userId')
+                .post(users.requiresLogin, applications.addToUser);
+
+	// Finish by binding the Application and User middlewares
 	app.param('applicationId', applications.applicationByID);
+        app.param('userId', users.userByID);
 };

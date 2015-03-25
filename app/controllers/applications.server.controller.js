@@ -6,10 +6,11 @@
 var mongoose = require('mongoose'),
 	errorHandler = require('./errors.server.controller'),
 	Application = mongoose.model('Application'),
+	User = mongoose.model('User'),
 	_ = require('lodash');
 
 /**
- * Create a Application
+ * Create an Application
  */
 exports.create = function(req, res) {
 	var application = new Application(req.body);
@@ -33,7 +34,7 @@ exports.read = function(req, res) {
 };
 
 /**
- * Update a Application
+ * Update an Application
  */
 exports.update = function(req, res) {
 	var application = req.application ;
@@ -42,6 +43,7 @@ exports.update = function(req, res) {
 
 	application.save(function(err) {
 		if (err) {
+                        console.log(err);
 			return res.status(400).send({
 				message: errorHandler.getErrorMessage(err)
 			});
@@ -81,6 +83,47 @@ exports.list = function(req, res) {
 			res.jsonp(applications);
 		}
 	});
+};
+
+exports.listByUser = function(req, res) {
+        var user = req.user;
+        var applications = user.applications;
+        res.jsonp(applications);
+};
+
+exports.addToUser = function(req, res) {
+        var user = req.user;
+        var application = req.application;
+        var applications = user.applications;
+        console.log(application);
+        console.log(user);
+        var myApp = {
+            id: application._id,
+            name: application.name,
+            logo: application.logo,
+            downloaded: new Date(),
+            visible: true
+        };
+        user.applications[user.applications.length] = myApp;
+        application.users[application.users.length] = user._id;
+
+        user.save(function(err) {
+                if (err) {
+                        return res.status(400).send({
+                                message: errorHandler.getErrorMessage(err)
+                        });
+                } else {
+                        application.save(function(err) {
+                                if (err) {
+                                        return res.status(400).send({
+                                                message: errorHandler.getErrorMessage(err)
+                                        });
+                                }
+                                res.jsonp(user);
+                        });
+                }
+        });
+
 };
 
 /**
