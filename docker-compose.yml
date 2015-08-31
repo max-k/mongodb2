@@ -8,5 +8,7 @@ web:
    NODE_ENV: development
 db:
   image: "mongo:2"
+  volumes:
+   - ./db:/data/db
   ports: 
    - "27017:27017"
